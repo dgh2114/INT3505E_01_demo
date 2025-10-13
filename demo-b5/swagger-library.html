@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Library API - Swagger UI</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+</head>
+<body>
+<div id="swagger-ui"></div>
+<script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+<script src="https://unpkg.com/swagger-ui-dist/swagger-ui-standalone-preset.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<script id="openapi-yaml" type="application/yaml">
+openapi: 3.0.3
+info:
+  title: Library Management API
+  version: 1.0.0
+  description: Simple API for book management, search and pagination demo
+servers:
+  - url: http://localhost:5000
+paths:
+  /books:
+    get:
+      summary: Search and paginate books
+      parameters:
+        - name: q
+          in: query
+          description: Search keyword (title or author)
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number (default: 1)
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Number of items per page (default: 10)
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful search
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page: { type: integer }
+                  limit: { type: integer }
+                  total_items: { type: integer }
+                  total_pages: { type: integer }
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Book'
+components:
+  schemas:
+    Book:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        author: { type: string }
+        category: { type: string }
+        published_year: { type: integer }
+
+</script>
+<script>
+  (function() {
+    var yamlText = document.getElementById('openapi-yaml').textContent;
+    var spec = jsyaml.load(yamlText);
+    window.ui = SwaggerUIBundle({
+      spec: spec,
+      dom_id: '#swagger-ui',
+      presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+      layout: "BaseLayout"
+    });
+  })();
+</script>
+</body>
+</html>
