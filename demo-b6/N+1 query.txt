@@ -1,0 +1,53 @@
+1. Khái niệm
+N+1 Query là một vấn đề hiệu năng phổ biến khi làm việc với ORM (Object Relational Mapping) như Hibernate, Django ORM, Sequelize, SQLAlchemy, v.v.
+Hiện tượng xảy ra khi:
+Ứng dụng thực hiện 1 truy vấn đầu tiên (query 1) để lấy danh sách dữ liệu.
+Sau đó, với mỗi phần tử trong danh sách, ORM lại tự động thực hiện 1 truy vấn riêng biệt để lấy dữ liệu liên quan.
+ Tổng cộng: N + 1 truy vấn (1 truy vấn chính + N truy vấn con).
+2. Ví dụ minh họa
+Giả sử có hai bảng:
+users — chứa thông tin người dùng
+posts — chứa bài viết, có khóa ngoại user_id
+Ví dụ gây ra N+1 Query (Django ORM):
+users = User.objects.all()          # (1) Query chính
+for user in users:
+    posts = user.posts.all()        # (N) Query phụ cho mỗi user
+Nếu có 100 người dùng → tổng cộng 101 truy vấn SQL được gửi đến database.
+SQL thực tế:
+SELECT * FROM users;
+SELECT * FROM posts WHERE user_id = 1;
+SELECT * FROM posts WHERE user_id = 2;
+...
+SELECT * FROM posts WHERE user_id = 100;
+3. Tác hại
+Giảm hiệu năng nghiêm trọng khi dữ liệu lớn.
+Tăng độ trễ do phải gửi nhiều truy vấn.
+Tốn tài nguyên và băng thông giữa ứng dụng và cơ sở dữ liệu.
+Khó phát hiện nếu không theo dõi log truy vấn.
+4. Nguyên nhân
+ORM mặc định sử dụng lazy loading (chỉ truy vấn khi cần đến dữ liệu con).
+Lập trình viên không preload dữ liệu liên quan, khiến ORM phải tự chạy thêm nhiều truy vấn.
+5. Giải pháp
+ 1. Eager Loading (Preload / Join Fetch)
+Tải trước dữ liệu liên quan ngay từ đầu bằng JOIN, thay vì chờ từng phần tử.
+Ví dụ Django:
+users = User.objects.prefetch_related('posts')
+
+
+Ví dụ Sequelize (Node.js):
+User.findAll({
+  include: [{ model: Post }]
+});
+
+
+ORM tự JOIN hai bảng → chỉ cần 1 truy vấn thay vì N+1.
+2. Batch Fetching
+Thay vì chạy 1 query cho mỗi phần tử, gom nhiều ID lại trong 1 truy vấn:
+SELECT * FROM posts WHERE user_id IN (1,2,3,...,100);
+
+
+ Giảm số lượng truy vấn đáng kể.
+ 3. Sử dụng Caching
+Lưu tạm dữ liệu thường dùng (Redis, memory cache) để tránh truy vấn lặp lại.
+4. Dùng DataLoader (GraphQL / Node.js)
+Công cụ gom nhiều yêu cầu nhỏ thành 1 truy vấn duy nhất, tránh lặp truy vấn.

@@ -1,13 +1,13 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
-  title: Book Management API
+  title: Book Management API – Full CRUD Demo
   version: 1.0.0
 servers:
   - url: http://127.0.0.1:5000
 paths:
   /auth/token:
     post:
-      summary: Lấy JWT token
+      summary: Đăng nhập và nhận access token
       requestBody:
         required: true
         content:
@@ -15,21 +15,79 @@ paths:
             schema:
               type: object
               properties:
-                username:
-                  type: string
-                password:
-                  type: string
+                username: { type: string }
+                password: { type: string }
+                role: { type: string, enum: [admin, user] }
       responses:
-        "200":
-          description: Trả về token
+        '200': { description: Trả về access token }
+
   /api/books:
     get:
-      summary: Lấy danh sách sách
+      summary: Lấy danh sách tất cả sách
       security:
         - bearerAuth: []
       responses:
-        "200":
-          description: Thành công
+        '200': { description: Danh sách sách }
+    post:
+      summary: Thêm sách mới (chỉ admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                author: { type: string }
+      responses:
+        '201': { description: Book created }
+
+  /api/books/{book_id}:
+    get:
+      summary: Xem chi tiết sách (chỉ admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: book_id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Book detail }
+    put:
+      summary: Cập nhật thông tin sách (chỉ admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: book_id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                author: { type: string }
+      responses:
+        '200': { description: Book updated }
+    delete:
+      summary: Xóa sách (chỉ admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: book_id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Book deleted }
+
 components:
   securitySchemes:
     bearerAuth:
