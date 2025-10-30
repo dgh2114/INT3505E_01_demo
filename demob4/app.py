@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "MY_SUPER_SECRET_KEY"
 
 # ==========================================
-# 📚 Dữ liệu mẫu (Stateless)
+#  Dữ liệu mẫu (Stateless)
 # ==========================================
 books = [
     {"id": 1, "title": "Clean Code", "author": "Robert C. Martin"},
@@ -14,7 +14,7 @@ books = [
 ]
 
 # ==========================================
-# 🔐 Authentication Endpoint
+# Authentication Endpoint
 # ==========================================
 @app.route("/auth/token", methods=["POST"])
 def get_token():
@@ -35,7 +35,7 @@ def get_token():
 
 
 # ==========================================
-# 🧩 Middleware kiểm tra JWT
+# Middleware kiểm tra JWT
 # ==========================================
 def require_token(func):
     """Decorator để kiểm tra JWT"""
@@ -56,7 +56,7 @@ def require_token(func):
 
 
 # ==========================================
-# 📖 CRUD API (Stateless)
+# CRUD API (Stateless)
 # ==========================================
 @app.route("/api/books", methods=["GET"])
 @require_token
@@ -102,7 +102,7 @@ def delete_book(book_id):
 
 
 # ==========================================
-# 📘 Serve file openapi.yaml ở cùng cấp app.py
+# Serve file openapi.yaml ở cùng cấp app.py
 # ==========================================
 @app.route("/openapi.yaml")
 def openapi_yaml():
@@ -113,7 +113,7 @@ def openapi_yaml():
 
 
 # ==========================================
-# 🧭 Swagger UI
+# Swagger UI
 # ==========================================
 SWAGGER_URL = "/docs"
 API_URL = "/openapi.yaml"  # đúng đường dẫn YAML
@@ -124,10 +124,5 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 )
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
-print(">>> File app.py đang được thực thi!")
-
-# ==========================================
-# 🚀 Run App
-# ==========================================
 if __name__ == "__main__":
     app.run(debug=True)
