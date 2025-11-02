@@ -1,13 +1,12 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_swagger_ui import get_swaggerui_blueprint
-import jwt, datetime, os, functools
+import jwt, datetime, os, functools, secrets
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "MY_SUPER_SECRET_KEY"
+app.config["REFRESH_SECRET_KEY"] = "MY_REFRESH_SECRET_KEY"
 
-# ==========================================
-# Dữ liệu mẫu (nhiều sách hơn)
-# ==========================================
+# Bộ nhớ tạm (stateless giả lập database)
 books = [
     {"id": 1, "title": "Clean Code", "author": "Robert C. Martin"},
     {"id": 2, "title": "The Pragmatic Programmer", "author": "Andy Hunt"},
@@ -16,32 +15,81 @@ books = [
     {"id": 5, "title": "Code Complete", "author": "Steve McConnell"},
 ]
 
+# Bộ nhớ tạm lưu refresh token (demo)
+refresh_tokens = {}
+
 # ==========================================
-# Authentication Endpoint
+# Helper Functions
+# ==========================================
+def create_access_token(username, role):
+    return jwt.encode({
+        "user": username,
+        "role": role,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=60),
+        "iat": datetime.datetime.utcnow()
+    }, app.config["SECRET_KEY"], algorithm="HS256")
+
+
+def create_refresh_token(username):
+    token = secrets.token_hex(16)
+    refresh_tokens[token] = {
+        "user": username,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+    }
+    return token
+
+
+def verify_refresh_token(token):
+    data = refresh_tokens.get(token)
+    if not data:
+        return None
+    if datetime.datetime.utcnow() > data["exp"]:
+        refresh_tokens.pop(token, None)
+        return None
+    return data["user"]
+
+
+# ==========================================
+# Authentication
 # ==========================================
 @app.route("/auth/token", methods=["POST"])
 def get_token():
-    """Đăng nhập -> trả về access token có thời hạn"""
+    """Đăng nhập -> nhận access token + refresh token"""
     data = request.get_json()
     username = data.get("username")
     password = data.get("password")
     role = data.get("role", "user")
 
     if (username, password) in [("admin", "123"), ("user", "123")]:
-        token = jwt.encode({
-            "user": username,
-            "role": role,
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=60),
-            "iat": datetime.datetime.utcnow()
-        }, app.config["SECRET_KEY"], algorithm="HS256")
-
+        access_token = create_access_token(username, role)
+        refresh_token = create_refresh_token(username)
         return jsonify({
-            "access_token": token,
-            "expires_in": "60 giây",
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "expires_in": "30 giây",
             "role": role,
-            "note": "Token sống 60s. Admin có thể thêm, sửa, xem chi tiết hoặc xóa sách."
+            "note": "Access token hết hạn sau 30s. Dùng refresh token để cấp lại."
         })
     return jsonify({"error": "Sai username hoặc password"}), 401
+
+
+@app.route("/auth/refresh", methods=["POST"])
+def refresh_access_token():
+    """Lấy access token mới bằng refresh token"""
+    data = request.get_json()
+    refresh_token = data.get("refresh_token")
+
+    username = verify_refresh_token(refresh_token)
+    if not username:
+        return jsonify({"error": "Refresh token không hợp lệ hoặc đã hết hạn"}), 401
+
+    # Giả sử role mặc định user
+    new_access_token = create_access_token(username, "user")
+    return jsonify({
+        "access_token": new_access_token,
+        "expires_in": "5 phút",
+        "note": "Access token mới được tạo từ refresh token."
+    })
 
 
 # ==========================================
@@ -160,7 +208,7 @@ SWAGGER_URL = "/docs"
 API_URL = "/openapi.yaml"
 swaggerui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL, API_URL,
-    config={"app_name": "Book Management API – Full CRUD Demo"}
+    config={"app_name": "Book Management API – JWT + Refresh Token Demo"}
 )
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 

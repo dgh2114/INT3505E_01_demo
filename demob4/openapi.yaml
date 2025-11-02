@@ -1,13 +1,13 @@
 openapi: 3.0.0
 info:
-  title: Book Management API – Full CRUD Demo
+  title: Book Management API – JWT + Refresh Token Demo
   version: 1.0.0
 servers:
   - url: http://127.0.0.1:5000
 paths:
   /auth/token:
     post:
-      summary: Đăng nhập và nhận access token
+      summary: Đăng nhập và nhận access + refresh token
       requestBody:
         required: true
         content:
@@ -19,7 +19,21 @@ paths:
                 password: { type: string }
                 role: { type: string, enum: [admin, user] }
       responses:
-        '200': { description: Trả về access token }
+        '200': { description: Trả về token }
+
+  /auth/refresh:
+    post:
+      summary: Cấp lại access token bằng refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token: { type: string }
+      responses:
+        '200': { description: Trả về access token mới }
 
   /api/books:
     get:
