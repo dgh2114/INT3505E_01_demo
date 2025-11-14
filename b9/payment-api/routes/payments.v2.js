@@ -1,0 +1,46 @@
+// routes/payments.v2.js
+const express = require("express");
+const { v4: uuidv4 } = require("uuid");
+
+const router = express.Router();
+
+/**
+ * POST /api/v2/payments
+ * Body:
+ * {
+ *   "amount": 100000,
+ *   "currency": "VND",
+ *   "description": "Top-up",
+ *   "idempotency_key": "optional-string"
+ * }
+ */
+router.post("/", (req, res) => {
+  const { amount, currency, description, idempotency_key } = req.body;
+
+  if (!amount || !currency) {
+    return res.status(400).json({
+      error: "amount and currency are required in v2"
+    });
+  }
+
+  const paymentId = uuidv4();
+
+  // Ví dụ: xử lý idempotency key (demo, chưa có store thật)
+  // Thực tế sẽ cần lưu idempotency_key vào DB để tránh tạo trùng payment.
+
+  res.status(201).json({
+    payment: {
+      id: paymentId,
+      amount,
+      currency,
+      description: description || null,
+      status: "PENDING"
+    },
+    metadata: {
+      version: "v2",
+      idempotency_key: idempotency_key || null
+    }
+  });
+});
+
+module.exports = router;
