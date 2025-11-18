@@ -15,11 +15,9 @@ app.post("/api/payments", (req, res, next) => {
   const version = req.header("Accept-Version");
 
   if (version === "2") {
-    req.url = "/";
-    return paymentsV2.handle(req, res, next);
+    return paymentsV2(req, res, next);  // gọi router v2
   } else {
-    req.url = "/";
-    return paymentsV1.handle(req, res, next);
+    return paymentsV1(req, res, next);  // gọi router v1
   }
 });
 
