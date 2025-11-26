@@ -1,0 +1,17 @@
+{"level":"info","message":"Server is running on http://localhost:3000","timestamp":"2025-11-26T11:44:29.568Z"}
+{"level":"info","message":"Incoming request","method":"GET","route":"/","timestamp":"2025-11-26T11:44:35.792Z"}
+{"level":"info","message":"Incoming request","method":"GET","route":"/api/hello","timestamp":"2025-11-26T11:45:18.823Z"}
+{"level":"info","message":"Incoming request","method":"POST","route":"/api/pay","timestamp":"2025-11-26T11:46:00.388Z"}
+{"level":"info","message":"Incoming request","method":"POST","route":"/api/pay","timestamp":"2025-11-26T11:46:02.823Z"}
+{"level":"info","message":"Incoming request","method":"POST","route":"/api/pay","timestamp":"2025-11-26T11:46:15.106Z"}
+{"level":"info","message":"Incoming request","method":"POST","route":"/api/pay","timestamp":"2025-11-26T11:46:15.716Z"}
+{"level":"info","message":"Incoming request","method":"POST","route":"/api/pay","timestamp":"2025-11-26T11:46:16.351Z"}
+{"level":"info","message":"Incoming request","method":"POST","route":"/api/pay","timestamp":"2025-11-26T11:46:17.322Z"}
+{"level":"info","message":"Incoming request","method":"POST","route":"/api/pay","timestamp":"2025-11-26T11:46:18.284Z"}
+{"level":"info","message":"Incoming request","method":"POST","route":"/api/pay","timestamp":"2025-11-26T11:46:19.208Z"}
+{"level":"info","message":"Incoming request","method":"POST","route":"/api/pay","timestamp":"2025-11-26T11:46:20.217Z"}
+{"level":"info","message":"Incoming request","method":"POST","route":"/api/pay","timestamp":"2025-11-26T11:46:21.218Z"}
+{"level":"info","message":"Incoming request","method":"POST","route":"/api/pay","timestamp":"2025-11-26T11:46:22.257Z"}
+{"level":"info","message":"Incoming request","method":"POST","route":"/api/pay","timestamp":"2025-11-26T11:46:23.258Z"}
+{"level":"info","message":"Incoming request","method":"POST","route":"/api/pay","timestamp":"2025-11-26T11:46:24.299Z"}
+{"level":"info","message":"Incoming request","method":"GET","route":"/metrics","timestamp":"2025-11-26T11:46:41.465Z"}
