@@ -21,7 +21,7 @@ app.use(metricsMiddleware);
 
 // Rate limited endpoint
 app.post("/api/pay", paymentLimiter, (req, res) => {
-  res.json({ status: "Payment processed" });
+  res.json({ status: "Thanh toán thành công" });
 });
 
 // Normal endpoint
