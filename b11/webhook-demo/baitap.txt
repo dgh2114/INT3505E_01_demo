@@ -1,0 +1,120 @@
+Stripe và GitHub là hai nền tảng có Webhook chuẩn mực nhất. Dưới đây là phân tích để tìm ra các pattern chung.
+
+## A. Webhook Stripe — phân tích
+
+1. Stripe gửi POST với header Stripe-Signature
+2. Body JSON có:
+
+   * id: ID sự kiện
+   * type: loại sự kiện, ví dụ "payment_intent.succeeded"
+   * data.object: dữ liệu chi tiết
+3. Stripe bắt buộc trả 200 OK
+4. Stripe retry nhiều lần nếu không nhận được phản hồi
+5. Stripe có dashboard để xem và redeliver webhook
+
+Ví dụ Webhook Stripe:
+Headers:
+Stripe-Signature: t=1702995811,v1=28ccd41a2039...
+
+Body:
+{
+"id": "evt_1NRQX1",
+"type": "payment_intent.succeeded",
+"data": {
+"object": {
+"id": "pi_3",
+"amount": 50000,
+"status": "succeeded"
+}
+}
+}
+
+## B. Webhook GitHub — phân tích
+
+1. GitHub gửi POST với headers:
+   X-GitHub-Event: push
+   X-Hub-Signature-256: sha256=xxxx
+   X-GitHub-Delivery: unique event ID
+2. Body JSON chứa dữ liệu tùy theo loại event:
+
+   * push: danh sách commit
+   * issue: thông tin issue
+   * pull_request: thông tin PR
+3. Server phải trả 200 OK
+4. GitHub retry nếu server không phản hồi
+5. GitHub có trang Webhook Dashboard để xem log
+
+Ví dụ Webhook GitHub:
+Headers:
+X-GitHub-Event: push
+X-Hub-Signature-256: sha256=83cc7d...
+X-GitHub-Delivery: 4a5a9...
+
+Body:
+{
+"ref": "refs/heads/main",
+"repository": {...},
+"pusher": {...},
+"commits": [...]
+}
+
+## C. PATTERN CHUNG của Webhook Stripe và GitHub
+
+1. Luôn dùng HTTP POST để gửi sự kiện.
+2. Event type rõ ràng để biết sự kiện thuộc loại nào.
+3. Có event ID để ghi log và tránh xử lý trùng.
+4. Dùng chữ ký (signature) để xác thực nguồn gửi (HMAC SHA256).
+5. Body JSON có cấu trúc rõ ràng.
+6. Server phải trả 200 OK, nếu không sẽ retry.
+7. Có dashboard để xem lịch sử webhook và gửi lại.
+8. Gửi sự kiện theo trigger rõ ràng (push, issue, payment,…).
+
+## D. Code demo xác minh chữ ký (Pattern quan trọng nhất)
+
+1. Xác minh chữ ký GitHub:
+
+const crypto = require("crypto");
+
+function verifyGitHubSignature(rawBody, signature, secret) {
+const expected = "sha256=" +
+crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+
+```
+return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expected)
+);
+```
+
+}
+
+2. Xác minh chữ ký Stripe:
+
+const crypto = require("crypto");
+
+function verifyStripeSignature(payload, header, secret) {
+const signedPayload = header.split(",")[1].replace("v1=", "");
+const expected = crypto.createHmac("sha256", secret)
+.update(payload)
+.digest("hex");
+
+```
+return expected === signedPayload;
+```
+
+}
+
+## E. Tổng kết
+
+Webhook Stripe và GitHub đều tuân theo các nguyên tắc:
+
+* POST + JSON
+* Có event type
+* Có event ID
+* Có chữ ký xác thực
+* Yêu cầu trả 200 OK
+* Retry khi lỗi
+* Dữ liệu rõ ràng theo từng sự kiện
+* Có trang dashboard để theo dõi
+
+Các pattern này giúp Webhook hoạt động ổn định, bảo mật và dễ debug.
